@@ -1,4 +1,4 @@
-# Local dev only: PostgreSQL + Mailpit, profile dev, JWT/OTP keys in environment.
+# Local dev only: PostgreSQL + Mailpit, JWT/OTP keys in environment.
 # Replace email/password for your own local test; never commit a real token/password.
 @baseUrl = http://localhost:8085
 @email = hoang.demo@example.com

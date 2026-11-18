@@ -1,7 +1,6 @@
 package com.example.busbooking.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import java.util.Set;
 
 @ConfigurationProperties(prefix = "auth.bootstrap-super-admin")
 public class BootstrapSuperAdminProperties {
@@ -21,16 +20,6 @@ public class BootstrapSuperAdminProperties {
     public void setFullName(String value) { fullName = value; }
     public String getPhone() { return phone; }
     public void setPhone(String value) { phone = value; }
-
-    public void requireAllowedProfiles(String[] profiles) {
-        if (!enabled) { return; }
-        if (profiles.length == 0) { throw new IllegalStateException("Super admin bootstrap is restricted to dev/test profiles"); }
-        for (String profile : profiles) {
-            if (!Set.of("dev", "test").contains(profile)) {
-                throw new IllegalStateException("Super admin bootstrap is restricted to dev/test profiles");
-            }
-        }
-    }
 
     @Override public String toString() { return "BootstrapSuperAdminProperties[REDACTED]"; }
 }

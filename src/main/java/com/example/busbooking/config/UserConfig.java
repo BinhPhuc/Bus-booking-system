@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
-import org.springframework.core.env.Environment;
 
 @Configuration
 @EnableConfigurationProperties(BootstrapSuperAdminProperties.class)
@@ -24,10 +23,9 @@ public class UserConfig {
 
     @Bean
     public ApplicationRunner superAdminBootstrapRunner(BootstrapSuperAdminProperties properties,
-            Environment environment, BootstrapSuperAdminService service) {
+            BootstrapSuperAdminService service) {
         return arguments -> {
             if (!properties.isEnabled()) { return; }
-            properties.requireAllowedProfiles(environment.getActiveProfiles());
             var result = service.bootstrap(new RegisterCommand(properties.getFullName(), properties.getEmail(),
                     properties.getPassword(), properties.getPhone()));
             var logger = LoggerFactory.getLogger(UserConfig.class);

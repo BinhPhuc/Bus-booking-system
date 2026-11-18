@@ -45,8 +45,8 @@ docker compose version
    | Database | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` |
    | JWT | `JWT_SECRET`, `JWT_EXPIRATION_MS`, `JWT_ISSUER` |
    | OTP | `EMAIL_OTP_SECRET` |
-   | SMTP | `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, `SMTP_AUTH`, `SMTP_STARTTLS`; profile `dev` cố định host `localhost`, dùng `SPRING_MAIL_HOST` để override host |
-   | Docs / môi trường | `SPRING_PROFILES_ACTIVE`, `API_DOCS_ENABLED` |
+   | SMTP | `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, `SMTP_AUTH`, `SMTP_STARTTLS`; với Mailpit đặt `SMTP_PORT=1025`, `SMTP_AUTH=false`, `SMTP_STARTTLS=false` |
+   | Docs | `API_DOCS_ENABLED` (mặc định `false`; đặt `true` để bật Swagger) |
 
    **Chú ý:** `.env.example` hiện ghi DB ở `5433/busbooking`, khác Compose (`5435/busbooking_dev_fresh`); dùng đúng URL của môi trường thực tế. Spring Boot chạy **trực tiếp bằng Maven không tự đọc `.env`**; Compose chỉ chuyển các biến đã khai báo trong `environment` vào backend, không tự chuyển mọi biến trong `.env`.
 
@@ -61,7 +61,7 @@ docker compose config --services
 
 Nếu repository chưa có `compose.yaml` hoặc lệnh kiểm tra báo lỗi, **không tiếp tục với lệnh khởi chạy**; kiểm tra lại bản bàn giao và cấu hình cần thiết.
 
-**Bước 2.** Build và khởi động các service được định nghĩa trong Compose. **Hạn chế hiện tại:** backend bật `dev`, đặt `SMTP_HOST=mailpit`, nhưng `application-dev.properties` cố định `spring.mail.host=localhost`. Cần override `SPRING_MAIL_HOST=mailpit` trong môi trường backend để dùng Mailpit qua network; chỉ thêm biến này vào `.env` chưa đủ vì Compose chưa chuyển nó vào container. Cấu hình hiện tại chưa sửa và luồng OTP qua Compose chưa được xác minh hoạt động:
+**Bước 2.** Build và khởi động các service được định nghĩa trong Compose.:
 
 ```powershell
 docker compose up -d --build
@@ -77,7 +77,7 @@ docker compose logs -f
 
 Thoát chế độ xem log bằng `Ctrl+C` (không dừng container).
 
-**Bước 4.** Mở Swagger tại `http://localhost:8086/swagger-ui/index.html`, Mailpit UI tại `http://localhost:8026`; đối chiếu **cổng host trong `docker compose ps`** nếu môi trường đã đổi cổng. Việc backend trả HTTP không xác nhận luồng OTP hoạt động khi còn hạn chế SMTP nêu trên.
+**Bước 4.** Mở Swagger tại `http://localhost:8086/swagger-ui/index.html`, Mailpit UI tại `http://localhost:8026`; đối chiếu **cổng host trong `docker compose ps`** nếu môi trường đã đổi cổng.
 
 **Dừng hệ thống** (không xóa database volume):
 
@@ -111,7 +111,6 @@ Mailpit UI: `http://localhost:8025`. Nếu container đã tồn tại, dùng `do
 **Bước 2.** Khai báo biến môi trường cho tiến trình PowerShell. Ví dụ dưới dùng PostgreSQL của `compose.yaml` tại `5435/busbooking_dev_fresh`; nếu tự tạo database khác, thay cả cổng và tên DB theo môi trường thực tế. Cung cấp mật khẩu/secret **của môi trường phát triển**, không đưa chúng vào source code:
 
 ```powershell
-$env:SPRING_PROFILES_ACTIVE = "dev"
 $env:DB_URL = "jdbc:postgresql://localhost:5435/busbooking_dev_fresh"
 $env:DB_USERNAME = "busbooking_user"
 $env:DB_PASSWORD = Read-Host "Mật khẩu PostgreSQL dev"
@@ -129,7 +128,7 @@ $rng.Dispose()
 $env:JWT_ISSUER = "busbooking"
 $env:JWT_EXPIRATION_MS = "86400000"
 
-$env:SPRING_MAIL_HOST = "127.0.0.1" # Override host cố định của profile dev
+$env:SMTP_HOST = "127.0.0.1"
 $env:SMTP_PORT = "1025"
 $env:SMTP_AUTH = "false"
 $env:SMTP_STARTTLS = "false"
@@ -138,14 +137,14 @@ $env:API_DOCS_ENABLED = "true"
 $env:BOOTSTRAP_SUPER_ADMIN_ENABLED = "false"
 ```
 
-**Bước 3.** Build và chạy. Với DB mới chưa có quản trị viên, trước khi chạy hãy đặt `$env:BOOTSTRAP_SUPER_ADMIN_ENABLED = "true"` thay giá trị `false` ở trên và khai báo `BOOTSTRAP_SUPER_ADMIN_EMAIL`, `BOOTSTRAP_SUPER_ADMIN_PASSWORD`, `BOOTSTRAP_SUPER_ADMIN_FULL_NAME`, `BOOTSTRAP_SUPER_ADMIN_PHONE` trong cùng phiên PowerShell. Bootstrap chỉ cho profile `dev`/`test`, tạo tài khoản mới chưa xác minh, không nâng quyền/reset tài khoản cũ hoặc thay SUPER_ADMIN khác. Xác minh OTP qua Mailpit trước khi login; sau khởi tạo đặt lại flag `false`. Compose hiện cố định flag `false` và chưa chuyển bốn biến tài khoản, nên quy trình này áp dụng cho backend local:
+**Bước 3.** Build và chạy. Với DB mới chưa có quản trị viên, trước khi chạy hãy đặt `$env:BOOTSTRAP_SUPER_ADMIN_ENABLED = "true"` thay giá trị `false` ở trên và khai báo `BOOTSTRAP_SUPER_ADMIN_EMAIL`, `BOOTSTRAP_SUPER_ADMIN_PASSWORD`, `BOOTSTRAP_SUPER_ADMIN_FULL_NAME`, `BOOTSTRAP_SUPER_ADMIN_PHONE` trong cùng phiên PowerShell. Bootstrap chỉ chạy khi bật flag này (không phụ thuộc profile), tạo tài khoản mới chưa xác minh, không nâng quyền/reset tài khoản cũ hoặc thay SUPER_ADMIN khác. Xác minh OTP qua Mailpit trước khi login; sau khởi tạo đặt lại flag `false`. Compose hiện cố định flag `false` và chưa chuyển bốn biến tài khoản, nên quy trình này áp dụng cho backend local:
 
 ```powershell
 .\mvnw.cmd -DskipTests clean package
 .\mvnw.cmd spring-boot:run
 ```
 
-Ứng dụng sử dụng cấu hình `dev` trong phiên PowerShell trên. Khi chạy bằng IDE, cần khai báo **cùng các biến môi trường** trong Run Configuration. Nếu PostgreSQL/SMTP chạy **trong container** và backend cũng chạy **trong container**, không dùng `localhost` để kết nối container khác; thay bằng hostname/service tương ứng của Docker network.
+Ứng dụng đọc cấu hình từ các biến môi trường của phiên PowerShell trên; không cần bật profile nào. Khi chạy bằng IDE, cần khai báo **cùng các biến môi trường** trong Run Configuration. Nếu PostgreSQL/SMTP chạy **trong container** và backend cũng chạy **trong container**, không dùng `localhost` để kết nối container khác; thay bằng hostname/service tương ứng của Docker network.
 
 ## 6.6. Kiểm tra sau khi khởi chạy
 
@@ -165,7 +164,7 @@ Invoke-WebRequest http://localhost:8085/v3/api-docs `
   -OutFile docs/openapi.json
 ```
 
-Swagger có thể bị tắt ngoài profile `dev`/`test` nếu chưa bật `API_DOCS_ENABLED`; **404 từ Swagger không đồng nghĩa backend bị lỗi**.
+Swagger mặc định tắt, chỉ bật khi đặt `API_DOCS_ENABLED=true`; **404 từ Swagger không đồng nghĩa backend bị lỗi**.
 
 **Luồng kiểm tra chức năng tối thiểu:**
 
@@ -199,8 +198,8 @@ Baseline hiệu năng GET Trip / POST Booking Pha 1 trên Kaggle CPU, script Loc
 | `Connection refused` PostgreSQL | `docker compose ps` hoặc `docker ps`; kiểm tra đúng **cổng host**, database, user, password và network |
 | Flyway checksum mismatch / missing table | Đối chiếu migration **V1–V16** với lịch sử DB; **không tự ý sửa migration cũ, tắt validation hoặc chạy `flyway repair`** để che lỗi |
 | Backend không lên vì JWT/OTP secret | Kiểm tra hai secret Base64 khác nhau, tối thiểu 32 byte sau giải mã |
-| Không nhận OTP | Kiểm tra SMTP và Mailpit; profile `dev` cố định host `localhost`, cần `SPRING_MAIL_HOST` để override. Compose chưa chuyển biến này; backend local cần SMTP publish ra host |
-| Swagger trả 404 | Kiểm tra profile `dev`, `API_DOCS_ENABLED` và cổng publish backend |
+| Không nhận OTP | Kiểm tra `SMTP_HOST`/`SMTP_PORT` trỏ tới SMTP truy cập được từ nơi backend chạy; với Mailpit cần `SMTP_AUTH=false`, `SMTP_STARTTLS=false` |
+| Swagger trả 404 | Kiểm tra `API_DOCS_ENABLED=true` và cổng publish backend |
 | HTTP `401` / `403` | Kiểm tra JWT, trạng thái xác minh email, role và ownership; đây có thể là phản hồi phân quyền đúng |
 | HTTP `429` khi thử auth | Rate limit đăng ký/đăng nhập/OTP; chờ hết cửa sổ giới hạn thay vì gọi liên tục |
 | Port 8085/8086/5435/1025/8025/8026 bị chiếm | Dùng `docker ps`, `Get-NetTCPConnection -State Listen`; điều chỉnh cổng phù hợp trong cấu hình |

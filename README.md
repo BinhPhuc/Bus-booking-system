@@ -79,11 +79,11 @@ src/main/java/com/example/busbooking/
 3. Từ thư mục gốc repository, chạy:
 
    ```powershell
-   $env:SPRING_PROFILES_ACTIVE = "dev"
+   $env:API_DOCS_ENABLED = "true"
    .\mvnw.cmd spring-boot:run
    ```
 
-Khi kết nối database thành công, **Flyway kiểm tra/áp dụng các migration** khi ứng dụng khởi động. Với cấu hình local cổng `8085`, mở [Swagger UI](http://localhost:8085/swagger-ui/index.html) để thử API. Repository có `compose.yaml` cho PostgreSQL, backend và Mailpit; backend publish cổng `8086`. Xem cổng, bootstrap và hạn chế SMTP của profile `dev` tại [Running Guide](docs/06-running-guide.md).
+Khi kết nối database thành công, **Flyway kiểm tra/áp dụng các migration** khi ứng dụng khởi động. Với cấu hình local cổng `8085`, mở [Swagger UI](http://localhost:8085/swagger-ui/index.html) để thử API. Repository có `compose.yaml` cho PostgreSQL, backend và Mailpit; backend publish cổng `8086`. Xem cổng, bootstrap và cấu hình SMTP tại [Running Guide](docs/06-running-guide.md).
 
 ## 5. API và kiểm thử
 

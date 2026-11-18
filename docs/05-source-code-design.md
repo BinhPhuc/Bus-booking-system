@@ -53,7 +53,6 @@ src/
 │   │   └── exception/
 │   └── resources/
 │       ├── application.properties
-│       ├── application-dev.properties
 │       ├── application-test.properties
 │       └── db/migration/       # Flyway V1–V16
 └── test/java/com/example/busbooking/
@@ -218,7 +217,7 @@ Source có `RoleManagementController`/`RoleManagementService` và `BootstrapSupe
 
 - `config/`: `AuthConfig`, `EmailVerificationConfig`, `UserConfig`, `OpenApiConfig`, `TimeConfig`, `BootstrapSuperAdminProperties`.
 - `exception/`: `GlobalExceptionHandler`, `ErrorResponse`, `ApiErrorController`, `ApiErrorWriter`.
-- `resources/`: `application.properties`, `application-dev.properties`, `application-test.properties` và migration Flyway **V1–V16**.
+- `resources/`: `application.properties`, `application-test.properties` và migration Flyway **V1–V16**.
 
 **Hai nhóm exception khác nhau:** `domain/exception` mô tả lỗi nghiệp vụ; `exception/` chuyển lỗi phù hợp thành phản hồi HTTP/JSON. Lỗi bị Spring Security từ chối trước controller được xử lý qua các handler/filter liên quan.
 
