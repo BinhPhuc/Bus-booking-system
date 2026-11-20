@@ -37,3 +37,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Load test output (ids and tokens for the local environment) ###
+load-tests/datasets/generated/
