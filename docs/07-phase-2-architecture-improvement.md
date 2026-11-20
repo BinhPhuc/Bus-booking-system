@@ -30,13 +30,13 @@ Baseline này chưa làm lộ vấn đề nào vì ba lý do, đều do chính t
 
 Không có bước này thì mọi cải thiện phía sau không chứng minh được.
 
-1. Thêm Spring Boot Actuator và Micrometer, xuất metric cho Prometheus: độ trễ theo endpoint, số lỗi, trạng thái HikariCP, thời gian chờ khóa.
-2. Viết script sinh dữ liệu lớn: khoảng 100.000 chuyến xe và vài trăm nghìn booking. File [`busbooking_seed.sql`](../load-tests/datasets/busbooking_seed.sql) hiện quá nhỏ.
+1. Thêm Spring Boot Actuator và Micrometer, xuất metric cho Prometheus: độ trễ theo endpoint, số lỗi, trạng thái HikariCP, thời gian chờ khóa. Micrometer không có sẵn metric chờ khóa, nên cần một Timer tự viết quanh `BookingService.create`. `SecurityConfig` đang từ chối mọi đường dẫn chưa khai báo, nên phải mở `/actuator/health` và `/actuator/prometheus`.
+2. Viết script sinh dữ liệu lớn: khoảng 100.000 chuyến xe, vài trăm nghìn booking và vài trăm tài khoản `USER` đã xác minh email. Tài khoản tạo thẳng bằng SQL và JWT tự ký, vì rate limiter chỉ cho 5 lượt đăng ký và 10 lượt đăng nhập mỗi phút trên một IP. File [`busbooking_seed.sql`](../load-tests/datasets/busbooking_seed.sql) hiện quá nhỏ.
 3. Bổ sung ba kịch bản tải, tái sử dụng script trong [`load-tests/scripts/`](../load-tests/scripts/):
    - **Tìm chuyến trên dữ liệu lớn:** chạy lại `get_trip_locust.py` sau khi nạp 100.000 chuyến.
    - **Chuyến "hot":** sửa `post_booking_locust.py` để dồn toàn bộ tải vào 1–5 chuyến có nhiều ghế, dùng nhiều tài khoản.
-   - **SMTP lỗi:** tắt hoặc làm chậm Mailpit trong lúc gọi `POST /api/auth/register`.
-4. Ghi lại RPS, p95, p99, tỉ lệ lỗi cho từng kịch bản. Đây là số liệu "trước cải thiện".
+   - **SMTP lỗi:** tắt hoặc làm chậm Mailpit trong lúc gọi `POST /api/auth/register`. Nâng `AUTH_RATE_REGISTER_LIMIT` khi chạy kịch bản này, nếu không gần như mọi request nhận `429`; ghi rõ giá trị đã dùng trong báo cáo.
+4. Chạy mỗi kịch bản 3 lần với cùng cấu hình máy và cùng dữ liệu, lấy trung vị của RPS, p95, p99, tỉ lệ lỗi. Đây là số liệu "trước cải thiện"; lần đo "sau" phải dùng đúng điều kiện này.
 
 ## 7.3. Nhóm A: hạn chế Pha 1 đã ghi nhận
 
@@ -55,9 +55,10 @@ Không có bước này thì mọi cải thiện phía sau không chứng minh �
 
 - Phân trang cho `GET /api/trips`, lịch sử booking và các danh sách quản trị. Đặt giới hạn kích thước trang tối đa.
 - Mặc định chỉ trả chuyến `SCHEDULED` có giờ khởi hành trong tương lai.
-- Chạy `EXPLAIN ANALYZE` trên dữ liệu 100.000 chuyến, rồi tạo index bằng migration mới V17. Ứng viên: `trips(route_id, departure_time)`, `routes(origin_id, destination_id)`, `bookings(user_id)`, `bookings(trip_id)`. Không sửa V16.
+- Chạy `EXPLAIN ANALYZE` trên dữ liệu 100.000 chuyến, rồi tạo index bằng migration mới V17. Ứng viên: `trips(route_id, departure_time)`, `bookings(user_id)`, `bookings(trip_id)`. `routes(origin_id, destination_id)` đã có index qua ràng buộc UNIQUE `uk_routes_origin_destination` (V14). Không sửa V16.
+- Thêm `t.id` vào `ORDER BY` của `searchFiltered` để thứ tự trang ổn định. Đổi kiểu trả về từ danh sách sang trang là thay đổi phá vỡ API: cập nhật `get_trip_locust.py` và test theo.
 
-**Cách chứng minh:** so sánh p95 và kế hoạch truy vấn của kịch bản "tìm chuyến trên dữ liệu lớn" trước và sau.
+**Cách chứng minh:** so sánh p95 và kế hoạch truy vấn của kịch bản "tìm chuyến trên dữ liệu lớn" trước và sau. Lấy kế hoạch từ đúng câu truy vấn tham số hóa mà ứng dụng gửi, không phải câu viết tay với hằng số.
 
 ### A2. Chưa có cache cho các API đọc
 
@@ -88,11 +89,13 @@ Cách làm hiện tại đúng về dữ liệu: không bán vượt ghế. Vấ
 
 **Hướng giải quyết:**
 
-- Rút ngắn đoạn giữ khóa. Câu `UPDATE … WHERE available_seats + :delta >= 0` vốn đã nguyên tử, nên có thể bỏ `SELECT … FOR UPDATE` và đọc giá, trạng thái chuyến bằng truy vấn không khóa. Điều kiện trạng thái `SCHEDULED` đưa vào mệnh đề `WHERE` của câu `UPDATE`.
+- Giữ nguyên `SELECT … FOR UPDATE`. Nhờ khóa trước rồi mới kiểm tra, service phân biệt được từng lỗi nghiệp vụ (không tìm thấy chuyến, chuyến không còn `SCHEDULED`, hết ghế) và trả đúng thông báo. Bỏ nó cũng không rút ngắn được thời gian giữ khóa, vì câu `UPDATE` vẫn khóa dòng chuyến xe đến khi commit.
 - Đặt `lock_timeout` và `statement_timeout`. Khi hết thời gian chờ, trả `409` hoặc `503` thay vì giữ kết nối.
 - Cấu hình tường minh kích thước pool HikariCP và `connection-timeout`, chọn giá trị theo số đo.
 
-**Cách chứng minh:** kịch bản chuyến "hot" trước và sau, kèm phép kiểm tra cân bằng ghế đã có sẵn trong notebook (`available_seats` + tổng vé `CONFIRMED` = sức chứa).
+Các lượt đặt trên cùng một chuyến vẫn xếp hàng; đây là giới hạn chấp nhận được. Mục tiêu của A3 là một chuyến "hot" không làm treo phần còn lại của hệ thống, không phải tăng RPS trên chuyến đó.
+
+**Cách chứng minh:** chạy kịch bản chuyến "hot" song song với một ít tải `GET /api/trips`, trước và sau. So sánh p99 và tỉ lệ lỗi của API đọc, số kết nối đang chờ của pool, và số request đặt vé bị từ chối nhanh thay vì treo. Kèm phép kiểm tra cân bằng ghế đã có sẵn trong notebook (`available_seats` + tổng vé `CONFIRMED` = sức chứa).
 
 ### A4. Chưa có idempotency cho đặt vé
 
@@ -160,7 +163,7 @@ Cách làm hiện tại đúng về dữ liệu: không bán vượt ghế. Vấ
 
 **Cách chứng minh:** tắt một instance trong lúc chạy tải, hệ thống vẫn phục vụ; so sánh tỉ lệ lỗi với cấu hình một instance.
 
-### A8. Lỗi cấu hình SMTP khi chạy bằng Compose
+### A8. Lỗi cấu hình SMTP khi chạy bằng Compose (đã hoàn thành ở commit `dbe76c9`)
 
 **Nguồn:** `docs/06-running-guide.md`, bước 2 mục chạy bằng Compose và bảng xử lý lỗi.
 
@@ -226,12 +229,12 @@ Tài liệu Pha 1 còn ghi nhận các giới hạn nghiệp vụ dưới đây.
 
 | Bước | Việc | Mục | Phụ thuộc |
 |---|---|---|---|
-| 1 | Bỏ profile `dev`, cấu hình SMTP qua biến môi trường | A8 | Không |
+| 1 | Bỏ profile `dev`, cấu hình SMTP qua biến môi trường (đã xong) | A8 | Không |
 | 2 | Actuator, metric, correlation ID | A5, 7.2 | Không |
 | 3 | Sinh dữ liệu lớn, viết 3 kịch bản tải, đo số liệu "trước" | 7.2 | Bước 1, 2 |
 | 4 | Phân trang và index cho tìm chuyến | A1 | Bước 3 |
 | 5 | Thêm Redis, cache API đọc | A2 | Bước 4 |
-| 6 | Rút ngắn khóa, timeout, pool, idempotency | A3, A4 | Bước 3 |
+| 6 | Timeout khóa, pool, idempotency | A3, A4 | Bước 3 |
 | 7 | Outbox cho email | B1 | Bước 3 |
 | 8 | Rate limiter dùng Redis | A6 | Bước 5 |
 | 9 | nginx, 2 instance, health check, tách migration | A7 | Bước 8 |
