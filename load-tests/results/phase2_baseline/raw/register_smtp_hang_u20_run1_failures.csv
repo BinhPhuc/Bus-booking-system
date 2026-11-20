@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,POST /api/auth/register,CatchResponseError('HTTP 503'),216,2026-11-20T16:46:25Z,2026-11-20T16:47:23Z

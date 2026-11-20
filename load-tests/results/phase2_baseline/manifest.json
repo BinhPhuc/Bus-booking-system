@@ -1,0 +1,70 @@
+{
+  "timestamp_utc": "2026-11-20T16:49:38.588544+00:00",
+  "stage": "BASELINE",
+  "jar_filename": "busbooking-0.0.1-SNAPSHOT.jar",
+  "jar_sha256": "d8600f1747023c03ceae4a7cfd5601300014cfd11bb3919374d64362d0a00fe9",
+  "scripts_source": "git: https://github.com/BinhPhuc/Bus-booking-system.git@main",
+  "scripts_commit": "502ab8e5d2363836d87dd4df49ca280d5c3a01ea",
+  "script_sha256_prefix": {
+    "large_dataset.sql": "8252b4786ce6e8e0",
+    "large_dataset_cleanup.sql": "7fade66499781450",
+    "seed_large_dataset.sh": "15c80458816eaf50",
+    "make_tokens.py": "f25df6724dc90db1",
+    "get_trip_locust.py": "ed587436784406b5",
+    "search_trips_locust.py": "6fd8e7fe892ae06a",
+    "hot_trip_booking_locust.py": "864c13725528ed25",
+    "register_locust.py": "e18a04a4d7aba836",
+    "smtp_blackhole.py": "8bf81b6856b0e385"
+  },
+  "java_version": "openjdk version \"21.0.13.1\" 2026-11-17 LTS",
+  "jvm_options": [
+    "-Xms256m",
+    "-Xmx1024m",
+    "-Duser.timezone=UTC"
+  ],
+  "postgres_client_version": "psql (PostgreSQL) 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+  "locust_version": "locust 2.47.0 from /usr/local/lib/python3.13/dist-packages/locust (Python 3.13.18)",
+  "psutil_version": "5.9.5",
+  "mailpit_version": "v1.32.0",
+  "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+  "cpu_model": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+  "logical_cpus": 4,
+  "ram_total_gb": 31.35,
+  "run_seconds": 60,
+  "runs_per_level": 3,
+  "warmup_seconds": 15,
+  "levels": {
+    "read_unfiltered": [
+      1,
+      5
+    ],
+    "read_search": [
+      20,
+      100
+    ],
+    "hot_trip": [
+      20,
+      100,
+      400
+    ],
+    "register": [
+      20
+    ]
+  },
+  "hot_trip_count": 1,
+  "dataset": {
+    "trips": 100005,
+    "bookings": 284940,
+    "users": 500,
+    "routes": 300
+  },
+  "auth_rate_register_limit": 1000000,
+  "actuator_metrics_available": true,
+  "backend_starts": 1,
+  "backend_out_of_memory_errors": 0,
+  "hot_trip_bookings": 80243,
+  "hot_trip_seat_imbalance": 0,
+  "register_mails_received": 1249,
+  "register_pending_accounts": 6442,
+  "notes": "Backend, PostgreSQL và Locust chạy chung một máy. CPU Java là Process.cpu_percent(), chưa chia cho số CPU logic."
+}
