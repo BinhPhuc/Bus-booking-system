@@ -79,6 +79,8 @@ public class SecurityConfig {
                     if (docsEnabled) {
                         access.requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs", "/v3/api-docs/**").permitAll();
                     }
+                    access.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**",
+                            "/actuator/prometheus").permitAll();
                     access.anyRequest().denyAll();
                 })
                 .addFilterAt(corsFilter, CorsFilter.class)

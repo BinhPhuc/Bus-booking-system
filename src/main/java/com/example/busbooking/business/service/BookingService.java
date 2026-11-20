@@ -7,6 +7,8 @@ import com.example.busbooking.domain.enums.TripStatus;
 import com.example.busbooking.domain.exception.*;
 import com.example.busbooking.domain.model.Booking;
 import com.example.busbooking.domain.model.Trip;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -18,17 +20,30 @@ import java.util.UUID;
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final TripRepository tripRepository;
+    // Time spent waiting for (and taking) the trip row lock, per operation.
+    private final Timer createLockWait;
+    private final Timer cancelLockWait;
 
-    public BookingService(BookingRepository bookingRepository, TripRepository tripRepository) {
+    public BookingService(BookingRepository bookingRepository, TripRepository tripRepository,
+                          MeterRegistry meterRegistry) {
         this.bookingRepository = bookingRepository;
         this.tripRepository = tripRepository;
+        this.createLockWait = lockWaitTimer(meterRegistry, "create");
+        this.cancelLockWait = lockWaitTimer(meterRegistry, "cancel");
+    }
+
+    private static Timer lockWaitTimer(MeterRegistry meterRegistry, String operation) {
+        return Timer.builder("booking.trip.lock.wait")
+                .description("Time to acquire the trip row lock")
+                .tag("operation", operation)
+                .register(meterRegistry);
     }
 
     @Transactional
     public Booking create(Long userId, Long tripId, String passengerName,
                           String passengerPhone, int quantity) {
         if (quantity <= 0) throw new BusinessException("Quantity must be greater than zero");
-        Trip trip = tripRepository.findByIdForUpdate(tripId)
+        Trip trip = createLockWait.record(() -> tripRepository.findByIdForUpdate(tripId))
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found with id: " + tripId));
         if (trip.getStatus() != TripStatus.SCHEDULED) {
             throw new BusinessException("Trip is not available for booking");
@@ -72,7 +87,7 @@ public class BookingService {
         if (booking.getStatus() == BookingStatus.CANCELLED) {
             throw new BusinessException("Booking is already cancelled");
         }
-        Trip trip = tripRepository.findByIdForUpdate(booking.getTripId())
+        Trip trip = cancelLockWait.record(() -> tripRepository.findByIdForUpdate(booking.getTripId()))
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Trip not found with id: " + booking.getTripId()));
         if (trip.getVehicle() == null
