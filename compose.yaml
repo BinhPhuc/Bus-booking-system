@@ -39,6 +39,23 @@ services:
       timeout: 5s
       retries: 10
 
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    restart: unless-stopped
+    environment:
+      RI_REDIS_HOST: redis
+      RI_REDIS_PORT: 6379
+      RI_REDIS_ALIAS: busbooking-redis
+      RI_ACCEPT_TERMS_AND_CONDITIONS: "true"
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
 #  backend:
 #    build:
 #      context: .
@@ -110,3 +127,4 @@ volumes:
   busbooking_data:
   prometheus_data:
   grafana_data:
+  redisinsight_data:
