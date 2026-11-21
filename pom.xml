@@ -88,6 +88,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Redis: shared cache and rate-limit counters -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <!-- Monitoring: health checks and Prometheus metrics -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -26,6 +26,19 @@ services:
       - "8025:8025"
       - "1025:1025"
 
+  redis:
+    image: redis:8.4-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: [ "redis-server", "--save", "", "--appendonly", "no" ]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 #  backend:
 #    build:
 #      context: .
@@ -78,6 +91,22 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  grafana:
+    image: grafana/grafana:12.2.0
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro,Z
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
 volumes:
   busbooking_data:
   prometheus_data:
+  grafana_data:
