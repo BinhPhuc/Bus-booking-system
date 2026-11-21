@@ -8,7 +8,6 @@ target/
 .env
 .env.*
 !.env.example
-!.env.docker.example
 
 ### STS ###
 .apt_generated
