@@ -11,7 +11,8 @@ import static org.mockito.Mockito.*;
 
 class AdminBookingServiceTest {
     BookingRepository repository = mock(BookingRepository.class);
-    BookingService service = new BookingService(repository, mock(TripRepository.class));
+    BookingService service = new BookingService(repository, mock(TripRepository.class),
+            new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
 
     @Test void filtersAreDelegatedAndResultsAreNotRestrictedToCurrentUser() {
         Booking booking = mock(Booking.class);
