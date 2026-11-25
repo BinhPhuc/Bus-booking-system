@@ -56,43 +56,6 @@ services:
       redis:
         condition: service_healthy
 
-#  backend:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#
-#    container_name: busbooking-backend
-#    restart: unless-stopped
-#
-#    ports:
-#      - "8086:8085"
-#
-#    environment:
-#      API_DOCS_ENABLED: "true"
-#
-#      DB_URL: jdbc:postgresql://postgres:5432/busbooking_dev_fresh
-#      DB_USERNAME: busbooking_user
-#      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD_required}
-#
-#      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET_required}
-#      EMAIL_OTP_SECRET: ${EMAIL_OTP_SECRET:?EMAIL_OTP_SECRET_required}
-#
-#      SMTP_HOST: mailpit
-#      SMTP_PORT: 1025
-#      SMTP_AUTH: "false"
-#      SMTP_STARTTLS: "false"
-#      SMTP_FROM: no-reply@busbooking.local
-#
-#      BOOTSTRAP_SUPER_ADMIN_ENABLED: "false"
-#
-#      JAVA_TOOL_OPTIONS: "-Duser.timezone=Asia/Ho_Chi_Minh"
-#
-#    depends_on:
-#      postgres:
-#        condition: service_healthy
-#      mailpit:
-#        condition: service_started
-
   prometheus:
     image: prom/prometheus:v3.5.0
     container_name: prometheus

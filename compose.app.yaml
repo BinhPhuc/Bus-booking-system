@@ -1,0 +1,85 @@
+# Application stack: database migration, 2 backend instances and nginx in front.
+# Runs on top of the infrastructure in compose.yaml:
+#   docker compose -f compose.yaml -f compose.app.yaml up -d --build
+
+x-backend: &backend
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: busbooking-backend
+  restart: unless-stopped
+  environment:
+    API_DOCS_ENABLED: "true"
+
+    DB_URL: jdbc:postgresql://postgres:5432/busbooking
+    DB_USERNAME: root
+    DB_PASSWORD: rootpassword
+    # The migrate service owns the schema; backends only validate it.
+    SPRING_FLYWAY_ENABLED: "false"
+
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+
+    JWT_SECRET: ${JWT_SECRET:?JWT_SECRET_required}
+    EMAIL_OTP_SECRET: ${EMAIL_OTP_SECRET:?EMAIL_OTP_SECRET_required}
+
+    SMTP_HOST: mailpit
+    SMTP_PORT: 1025
+    SMTP_AUTH: "false"
+    SMTP_STARTTLS: "false"
+    SMTP_FROM: no-reply@busbooking.local
+
+    BOOTSTRAP_SUPER_ADMIN_ENABLED: "false"
+
+    JAVA_TOOL_OPTIONS: "-Duser.timezone=Asia/Ho_Chi_Minh"
+  healthcheck:
+    test: [ "CMD", "curl", "-fsS", "http://localhost:8085/actuator/health/readiness" ]
+    interval: 5s
+    timeout: 3s
+    retries: 5
+    start_period: 30s
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+    redis:
+      condition: service_healthy
+    mailpit:
+      condition: service_started
+
+services:
+  migrate:
+    image: flyway/flyway:11.14.1
+    container_name: busbooking-migrate
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/busbooking
+      FLYWAY_USER: root
+      FLYWAY_PASSWORD: rootpassword
+      FLYWAY_CONNECT_RETRIES: 10
+    volumes:
+      - ./src/main/resources/db/migration:/flyway/sql:ro,z
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend-1:
+    <<: *backend
+    container_name: busbooking-backend-1
+
+  backend-2:
+    <<: *backend
+    container_name: busbooking-backend-2
+
+  nginx:
+    image: nginx:1.29-alpine
+    container_name: busbooking-nginx
+    restart: unless-stopped
+    ports:
+      - "8086:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro,Z
+    depends_on:
+      backend-1:
+        condition: service_healthy
+      backend-2:
+        condition: service_healthy

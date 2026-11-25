@@ -6,4 +6,5 @@ scrape_configs:
   - job_name: busbooking-backend
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["host.docker.internal:8085"]
+      # backend-1/2: instances from compose.app.yaml. host.docker.internal: a backend run from the IDE/Maven.
+      - targets: ["backend-1:8085", "backend-2:8085", "host.docker.internal:8085"]
