@@ -16,6 +16,15 @@
 
 Các mã HTTP thường gặp: `200` (đọc/cập nhật/hủy mềm thành công), `201` (tạo), `202` (tiếp nhận yêu cầu), `204` (thành công không body), `400` (đầu vào không hợp lệ), `401` (chưa xác thực), `403` (không đủ quyền), `404` (không tìm thấy), `409` (xung đột nghiệp vụ), `429` (vượt giới hạn tần suất), `503` (dịch vụ email không khả dụng). Mã và body cụ thể phải theo controller/handler; OpenAPI hiện ghi sai `200` thay vì `201` cho POST Booking và POST Admin Location/Operator/Route/Vehicle.
 
+### Phân trang
+
+Áp dụng cho `GET /api/trips` và các danh sách `GET /api/admin/{trips,bookings,locations,operators,routes,vehicles}`. Có thể kết hợp tham số phân trang với các bộ lọc của từng endpoint.
+
+- `page` bắt đầu từ 0, mặc định là 0.
+- `limit` từ 1 đến 100, mặc định là 20. `page × limit` tối đa là `2147483647`. Tham số không hợp lệ trả về HTTP `400` với `ErrorResponse`.
+- Phản hồi HTTP `200` là object JSON. Client đọc danh sách của trang từ `content`, chỉ số trang từ `page` và kích thước tối đa của trang từ `limit`.
+- `totalElements` đếm toàn bộ kết quả khớp bộ lọc và `totalPages` là tổng số trang theo `limit`. Trang ngoài phạm vi vẫn trả HTTP `200` với `content: []`. Khi không có kết quả, cả hai trường tổng đều bằng `0`.
+
 ## 4.2. Danh sách các API đã triển khai
 
 | # | Method | Endpoint | Nhóm | Quyền truy cập |
@@ -119,16 +128,16 @@ Content-Type: application/json
 | API | Bộ lọc / tham số | Ý nghĩa |
 |---|---|---|
 | `GET /api/locations` | `q` (tùy chọn) | Danh sách Location để lấy ID và tìm chuyến |
-| `GET /api/trips` | `originId`, `destinationId`, `departureDate` | Tìm kiếm các chuyến xe; ngày có dạng `YYYY-MM-DD` |
+| `GET /api/trips` | `originId`, `destinationId`, `departureDate`, `page`, `limit` (tùy chọn) | Tìm các chuyến `SCHEDULED` có giờ khởi hành sau thời điểm hiện tại theo giờ Việt Nam (`Asia/Ho_Chi_Minh`). `departureDate` là ngày địa phương theo định dạng `YYYY-MM-DD`. |
 | `GET /api/trips/{tripId}` | `tripId` | Chi tiết một chuyến xe |
 
-Ví dụ:
+Ví dụ yêu cầu trang thứ hai với tối đa 10 chuyến:
 
 ```http
-GET /api/trips?originId=1&destinationId=2&departureDate=2026-11-10
+GET /api/trips?originId=1&destinationId=2&departureDate=2026-12-15&page=1&limit=10
 ```
 
-Dữ liệu trả về có thể chứa điểm đi/đến, thời điểm khởi hành, giá, ghế còn lại, phương tiện, nhà xe và trạng thái; **tên trường và cấu trúc lồng nhau theo `TripResponse` thực tế trong OpenAPI**. Tài liệu cũ có các ví dụ `TripResponse` không đồng nhất giữa list/detail, nên không coi các ví dụ đó là schema chính thức.
+`content` chứa các `TripResponse`, sắp xếp tăng dần theo giờ khởi hành rồi theo ID chuyến. Điều kiện về trạng thái và giờ khởi hành áp dụng cả khi có `departureDate` và khi tính `totalElements`. `GET /api/trips/{tripId}` trả trực tiếp một `TripResponse`. Xem cấu trúc trường trong [OpenAPI](openapi.json).
 
 ### 4.3.4. Booking
 

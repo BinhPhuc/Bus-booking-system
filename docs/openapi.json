@@ -845,21 +845,27 @@
                                 "MAINTENANCE"
                             ]
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageNumber"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageLimit"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "A page of results",
                         "content": {
-                            "*/*": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/VehicleResponse"
-                                    }
+                                    "$ref": "#/components/schemas/PageVehicleResponse"
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidListQuery"
                     }
                 },
                 "security": [
@@ -942,21 +948,27 @@
                             "type": "string",
                             "format": "date"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageNumber"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageLimit"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "A page of results",
                         "content": {
-                            "*/*": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/TripResponse"
-                                    }
+                                    "$ref": "#/components/schemas/PageTripResponse"
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidListQuery"
                     }
                 },
                 "security": [
@@ -1037,21 +1049,27 @@
                                 "INACTIVE"
                             ]
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageNumber"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageLimit"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "A page of results",
                         "content": {
-                            "*/*": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/RouteResponse"
-                                    }
+                                    "$ref": "#/components/schemas/PageRouteResponse"
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidListQuery"
                     }
                 },
                 "security": [
@@ -1122,21 +1140,27 @@
                                 "INACTIVE"
                             ]
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageNumber"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageLimit"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "A page of results",
                         "content": {
-                            "*/*": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/OperatorResponse"
-                                    }
+                                    "$ref": "#/components/schemas/PageOperatorResponse"
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidListQuery"
                     }
                 },
                 "security": [
@@ -1195,21 +1219,27 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageNumber"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageLimit"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "A page of results",
                         "content": {
-                            "*/*": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/LocationResponse"
-                                    }
+                                    "$ref": "#/components/schemas/PageLocationResponse"
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidListQuery"
                     }
                 },
                 "security": [
@@ -1313,24 +1343,33 @@
                         "schema": {
                             "type": "string",
                             "format": "date"
-                        }
+                        },
+                        "description": "Departure date in Vietnam local time (YYYY-MM-DD)."
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageNumber"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageLimit"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "A page of results",
                         "content": {
-                            "*/*": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/TripResponse"
-                                    }
+                                    "$ref": "#/components/schemas/PageTripResponse"
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidListQuery"
                     }
-                }
+                },
+                "summary": "Find upcoming scheduled trips",
+                "description": "Returns SCHEDULED trips with a departure time strictly after the current time in Vietnam (Asia/Ho_Chi_Minh). Optional filters further restrict those trips. Results are sorted by departure time and then trip ID, both ascending."
             }
         },
         "/api/trips/{tripId}": {
@@ -1561,21 +1600,27 @@
                                 "CANCELLED"
                             ]
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageNumber"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageLimit"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "A page of results",
                         "content": {
-                            "*/*": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/BookingResponse"
-                                    }
+                                    "$ref": "#/components/schemas/PageBookingResponse"
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidListQuery"
                     }
                 },
                 "security": [
@@ -2427,6 +2472,258 @@
                         "format": "date-time"
                     }
                 }
+            },
+            "PageTripResponse": {
+                "type": "object",
+                "required": [
+                    "content",
+                    "page",
+                    "limit",
+                    "totalElements",
+                    "totalPages"
+                ],
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TripResponse"
+                        },
+                        "maxItems": 100,
+                        "description": "Items on this page. Empty when the requested page is beyond the available results."
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "totalElements": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0,
+                        "description": "Number of items matching the filters across all pages."
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "PageBookingResponse": {
+                "type": "object",
+                "required": [
+                    "content",
+                    "page",
+                    "limit",
+                    "totalElements",
+                    "totalPages"
+                ],
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BookingResponse"
+                        },
+                        "maxItems": 100,
+                        "description": "Items on this page. Empty when the requested page is beyond the available results."
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "totalElements": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0,
+                        "description": "Number of items matching the filters across all pages."
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "PageLocationResponse": {
+                "type": "object",
+                "required": [
+                    "content",
+                    "page",
+                    "limit",
+                    "totalElements",
+                    "totalPages"
+                ],
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/LocationResponse"
+                        },
+                        "maxItems": 100,
+                        "description": "Items on this page. Empty when the requested page is beyond the available results."
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "totalElements": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0,
+                        "description": "Number of items matching the filters across all pages."
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "PageOperatorResponse": {
+                "type": "object",
+                "required": [
+                    "content",
+                    "page",
+                    "limit",
+                    "totalElements",
+                    "totalPages"
+                ],
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OperatorResponse"
+                        },
+                        "maxItems": 100,
+                        "description": "Items on this page. Empty when the requested page is beyond the available results."
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "totalElements": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0,
+                        "description": "Number of items matching the filters across all pages."
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "PageRouteResponse": {
+                "type": "object",
+                "required": [
+                    "content",
+                    "page",
+                    "limit",
+                    "totalElements",
+                    "totalPages"
+                ],
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteResponse"
+                        },
+                        "maxItems": 100,
+                        "description": "Items on this page. Empty when the requested page is beyond the available results."
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "totalElements": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0,
+                        "description": "Number of items matching the filters across all pages."
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "PageVehicleResponse": {
+                "type": "object",
+                "required": [
+                    "content",
+                    "page",
+                    "limit",
+                    "totalElements",
+                    "totalPages"
+                ],
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VehicleResponse"
+                        },
+                        "maxItems": 100,
+                        "description": "Items on this page. Empty when the requested page is beyond the available results."
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "totalElements": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0,
+                        "description": "Number of items matching the filters across all pages."
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
             }
         },
         "securitySchemes": {
@@ -2434,6 +2731,45 @@
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT"
+            }
+        },
+        "parameters": {
+            "PageNumber": {
+                "name": "page",
+                "in": "query",
+                "description": "Zero-based page number. The product of page and limit must not exceed 2147483647.",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "default": 0
+                }
+            },
+            "PageLimit": {
+                "name": "limit",
+                "in": "query",
+                "description": "Maximum number of items per page.",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 20
+                }
+            }
+        },
+        "responses": {
+            "InvalidListQuery": {
+                "description": "Invalid pagination parameters or query filters.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
             }
         }
     }
