@@ -48,6 +48,7 @@ public interface SpringDataTripRepository
             Long destinationId,
             LocalDateTime departureDate,
             LocalDateTime departureDateEnd,
+            LocalDateTime now,
             Pageable pageable
     ) {
         if ((departureDate == null) != (departureDateEnd == null)) {
@@ -61,6 +62,7 @@ public interface SpringDataTripRepository
                 destinationId,
                 departureDate,
                 departureDateEnd,
+                now,
                 originId == null,
                 destinationId == null,
                 departureDate == null,
@@ -76,7 +78,9 @@ public interface SpringDataTripRepository
         JOIN FETCH r.destination
         JOIN FETCH t.vehicle v
         JOIN FETCH v.operator
-        WHERE (:skipOrigin = true OR r.origin.id = :originId)
+        WHERE t.status = com.example.busbooking.domain.enums.TripStatus.SCHEDULED
+          AND t.departureTime > :now
+          AND (:skipOrigin = true OR r.origin.id = :originId)
           AND (:skipDestination = true OR r.destination.id = :destinationId)
           AND (
               :skipDate = true
@@ -94,7 +98,9 @@ public interface SpringDataTripRepository
         JOIN r.destination
         JOIN t.vehicle v
         JOIN v.operator
-        WHERE (:skipOrigin = true OR r.origin.id = :originId)
+        WHERE t.status = com.example.busbooking.domain.enums.TripStatus.SCHEDULED
+          AND t.departureTime > :now
+          AND (:skipOrigin = true OR r.origin.id = :originId)
           AND (:skipDestination = true OR r.destination.id = :destinationId)
           AND (
               :skipDate = true
@@ -109,6 +115,7 @@ public interface SpringDataTripRepository
             @Param("destinationId") Long destinationId,
             @Param("departureDate") LocalDateTime departureDate,
             @Param("departureDateEnd") LocalDateTime departureDateEnd,
+            @Param("now") LocalDateTime now,
             @Param("skipOrigin") boolean skipOrigin,
             @Param("skipDestination") boolean skipDestination,
             @Param("skipDate") boolean skipDate,

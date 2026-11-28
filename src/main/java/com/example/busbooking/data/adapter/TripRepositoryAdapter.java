@@ -9,23 +9,31 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 @Component
 public class TripRepositoryAdapter implements TripRepository {
+
+    private static final ZoneId TRIP_TIME_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     @jakarta.persistence.PersistenceContext
     private jakarta.persistence.EntityManager entityManager;
 
     private final SpringDataTripRepository springDataTripRepository;
     private final TripPersistenceMapper tripPersistenceMapper;
+    private final Clock clock;
 
     public TripRepositoryAdapter(
             SpringDataTripRepository springDataTripRepository,
-            TripPersistenceMapper tripPersistenceMapper) {
+            TripPersistenceMapper tripPersistenceMapper,
+            Clock clock) {
         this.springDataTripRepository = springDataTripRepository;
         this.tripPersistenceMapper = tripPersistenceMapper;
+        this.clock = clock;
     }
 
     @Override
@@ -62,6 +70,7 @@ public class TripRepositoryAdapter implements TripRepository {
                 destinationId,
                 departureDate == null ? null : departureDate.atStartOfDay(),
                 departureDate == null ? null : departureDate.plusDays(1).atStartOfDay(),
+                LocalDateTime.ofInstant(clock.instant(), TRIP_TIME_ZONE),
                 pageable
         ).map(tripPersistenceMapper::toDomain);
     }
