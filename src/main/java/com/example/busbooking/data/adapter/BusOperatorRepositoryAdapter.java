@@ -7,9 +7,10 @@ import com.example.busbooking.data.repository.SpringDataBusOperatorRepository;
 import com.example.busbooking.domain.enums.OperatorStatus;
 import com.example.busbooking.domain.exception.*;
 import com.example.busbooking.domain.model.Operator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
-import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -24,9 +25,8 @@ public class BusOperatorRepositoryAdapter implements OperatorRepository {
     }
 
     @Override
-    public List<Operator> search(String query, OperatorStatus status) {
-        return repository.search(query, status == null ? "" : status.name()).stream()
-                .map(mapper::toDomain).toList();
+    public Page<Operator> search(String query, OperatorStatus status, Pageable pageable) {
+        return repository.search(query, status == null ? "" : status.name(), pageable).map(mapper::toDomain);
     }
 
     @Override

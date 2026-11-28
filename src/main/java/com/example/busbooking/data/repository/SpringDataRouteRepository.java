@@ -2,15 +2,16 @@ package com.example.busbooking.data.repository;
 
 import com.example.busbooking.data.entity.RouteEntity;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.util.List;
 import java.util.Optional;
 
 public interface SpringDataRouteRepository extends JpaRepository<RouteEntity, Long> {
-    @Query("""
+    @Query(value = """
             select route from RouteEntity route
             join fetch route.origin origin
             join fetch route.destination destination
@@ -19,10 +20,17 @@ public interface SpringDataRouteRepository extends JpaRepository<RouteEntity, Lo
               and (:status is null or route.status = :status)
             order by lower(origin.province), lower(origin.name),
                      lower(destination.province), lower(destination.name), route.id
+            """, countQuery = """
+            SELECT count(route) from RouteEntity route
+            JOIN route.origin origin
+            JOIN route.destination destination
+            where (:originId is null or route.originId = :originId)
+              and (:destinationId is null or route.destinationId = :destinationId)
+              and (:status is null or route.status = :status)
             """)
-    List<RouteEntity> search(@Param("originId") Long originId,
+    Page<RouteEntity> search(@Param("originId") Long originId,
                              @Param("destinationId") Long destinationId,
-                             @Param("status") String status);
+                             @Param("status") String status, Pageable pageable);
 
     @Query("""
             select route from RouteEntity route

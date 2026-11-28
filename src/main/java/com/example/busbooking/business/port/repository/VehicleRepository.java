@@ -1,12 +1,13 @@
 package com.example.busbooking.business.port.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.example.busbooking.domain.model.Vehicle;
 import com.example.busbooking.domain.enums.VehicleStatus;
-import java.util.List;
 import java.util.Optional;
 
 public interface VehicleRepository {
-    List<Vehicle> search(String query, Long operatorId, VehicleStatus status);
+    Page<Vehicle> search(String query, Long operatorId, VehicleStatus status, Pageable pageable);
     Optional<Vehicle> findById(Long id);
     Optional<Vehicle> findByIdForUpdate(Long id);
     boolean existsByLicensePlate(String licensePlate, Long excludedId);

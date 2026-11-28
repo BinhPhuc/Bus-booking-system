@@ -4,6 +4,7 @@ import com.example.busbooking.api.dto.location.LocationResponse;
 import com.example.busbooking.api.mapper.LocationDtoMapper;
 import com.example.busbooking.business.service.LocationService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +25,6 @@ public class LocationController {
     @GetMapping
     @Operation(summary = "List locations for trip search")
     public List<LocationResponse> list(@RequestParam(required = false) String q) {
-        return service.search(q).stream().map(mapper::toResponse).toList();
+        return service.search(q, Pageable.unpaged()).stream().map(mapper::toResponse).toList();
     }
 }

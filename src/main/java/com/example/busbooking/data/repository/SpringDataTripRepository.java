@@ -3,6 +3,8 @@ package com.example.busbooking.data.repository;
 
 import com.example.busbooking.data.entity.TripEntity;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
@@ -10,13 +12,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 public interface SpringDataTripRepository
         extends JpaRepository<TripEntity, Long> {
 
-    @Query("""
+    @Query(value = """
         SELECT t FROM TripEntity t
         JOIN FETCH t.route r
         JOIN FETCH r.origin
@@ -27,17 +28,27 @@ public interface SpringDataTripRepository
           AND (:skipStatus = true OR t.status = :status)
           AND (:skipDate = true OR (t.departureTime >= :start AND t.departureTime < :end))
         ORDER BY t.departureTime ASC, t.id ASC
+        """, countQuery = """
+        SELECT count(t) FROM TripEntity t
+        JOIN t.route r
+        JOIN r.origin
+        JOIN r.destination
+        JOIN t.vehicle v
+        JOIN v.operator
+        WHERE (:skipRoute = true OR t.routeId = :routeId)
+          AND (:skipStatus = true OR t.status = :status)
+          AND (:skipDate = true OR (t.departureTime >= :start AND t.departureTime < :end))
         """)
-    List<TripEntity> findForAdmin(Long routeId, com.example.busbooking.domain.enums.TripStatus status,
+    Page<TripEntity> findForAdmin(Long routeId, com.example.busbooking.domain.enums.TripStatus status,
                                   LocalDateTime start, LocalDateTime end,
-                                  boolean skipRoute, boolean skipStatus, boolean skipDate);
+                                  boolean skipRoute, boolean skipStatus, boolean skipDate, Pageable pageable);
 
-    // Giữ nguyên API mà RepositoryAdapter đang sử dụng
-    default List<TripEntity> search(
+    default Page<TripEntity> search(
             Long originId,
             Long destinationId,
             LocalDateTime departureDate,
-            LocalDateTime departureDateEnd
+            LocalDateTime departureDateEnd,
+            Pageable pageable
     ) {
         if ((departureDate == null) != (departureDateEnd == null)) {
             throw new IllegalArgumentException(
@@ -52,11 +63,12 @@ public interface SpringDataTripRepository
                 departureDateEnd,
                 originId == null,
                 destinationId == null,
-                departureDate == null
+                departureDate == null,
+                pageable
         );
     }
 
-    @Query("""
+    @Query(value = """
         SELECT t
         FROM TripEntity t
         JOIN FETCH t.route r
@@ -73,16 +85,34 @@ public interface SpringDataTripRepository
                   AND t.departureTime < :departureDateEnd
               )
           )
-        ORDER BY t.departureTime ASC
+        ORDER BY t.departureTime ASC, t.id ASC
+        """, countQuery = """
+        SELECT count(t)
+        FROM TripEntity t
+        JOIN t.route r
+        JOIN r.origin
+        JOIN r.destination
+        JOIN t.vehicle v
+        JOIN v.operator
+        WHERE (:skipOrigin = true OR r.origin.id = :originId)
+          AND (:skipDestination = true OR r.destination.id = :destinationId)
+          AND (
+              :skipDate = true
+              OR (
+                  t.departureTime >= :departureDate
+                  AND t.departureTime < :departureDateEnd
+              )
+          )
         """)
-    List<TripEntity> searchFiltered(
+    Page<TripEntity> searchFiltered(
             @Param("originId") Long originId,
             @Param("destinationId") Long destinationId,
             @Param("departureDate") LocalDateTime departureDate,
             @Param("departureDateEnd") LocalDateTime departureDateEnd,
             @Param("skipOrigin") boolean skipOrigin,
             @Param("skipDestination") boolean skipDestination,
-            @Param("skipDate") boolean skipDate
+            @Param("skipDate") boolean skipDate,
+            Pageable pageable
     );
 
     @Query("""

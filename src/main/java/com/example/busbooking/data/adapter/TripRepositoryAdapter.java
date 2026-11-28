@@ -5,10 +5,11 @@ import com.example.busbooking.data.entity.TripEntity;
 import com.example.busbooking.data.mapper.TripPersistenceMapper;
 import com.example.busbooking.data.repository.SpringDataTripRepository;
 import com.example.busbooking.domain.model.Trip;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -28,13 +29,13 @@ public class TripRepositoryAdapter implements TripRepository {
     }
 
     @Override
-    public List<Trip> findForAdmin(Long routeId, com.example.busbooking.domain.enums.TripStatus status,
-                                   LocalDate departureDate) {
+    public Page<Trip> findForAdmin(Long routeId, com.example.busbooking.domain.enums.TripStatus status,
+                                   LocalDate departureDate,
+            Pageable pageable) {
         return springDataTripRepository.findForAdmin(routeId, status,
                 departureDate == null ? null : departureDate.atStartOfDay(),
                 departureDate == null ? null : departureDate.plusDays(1).atStartOfDay(),
-                routeId == null, status == null, departureDate == null).stream()
-                .map(tripPersistenceMapper::toDomain).toList();
+                routeId == null, status == null, departureDate == null, pageable).map(tripPersistenceMapper::toDomain);
     }
 
     @Override
@@ -51,22 +52,18 @@ public class TripRepositoryAdapter implements TripRepository {
     }
 
     @Override
-    public List<Trip> search(
+    public Page<Trip> search(
             Long originId,
             Long destinationId,
-            LocalDate departureDate) {
-
-        List<TripEntity> entities =
-                springDataTripRepository.search(
-                        originId,
-                        destinationId,
-                        departureDate == null ? null : departureDate.atStartOfDay(),
-                        departureDate == null ? null : departureDate.plusDays(1).atStartOfDay()
-                );
-
-        return entities.stream()
-                .map(tripPersistenceMapper::toDomain)
-                .toList();
+            LocalDate departureDate,
+            Pageable pageable) {
+        return springDataTripRepository.search(
+                originId,
+                destinationId,
+                departureDate == null ? null : departureDate.atStartOfDay(),
+                departureDate == null ? null : departureDate.plusDays(1).atStartOfDay(),
+                pageable
+        ).map(tripPersistenceMapper::toDomain);
     }
 
     @Override

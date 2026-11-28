@@ -6,9 +6,10 @@ import com.example.busbooking.domain.exception.BusinessException;
 import com.example.busbooking.domain.exception.DuplicateLocationException;
 import com.example.busbooking.domain.exception.ResourceNotFoundException;
 import com.example.busbooking.domain.model.Location;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
 @Service
 public class LocationService {
@@ -19,9 +20,9 @@ public class LocationService {
     }
 
     @Transactional(readOnly = true)
-    public List<Location> search(String query) {
+    public Page<Location> search(String query, Pageable pageable) {
         String normalizedQuery = normalizeQuery(query);
-        return locations.search(normalizedQuery);
+        return locations.search(normalizedQuery, pageable);
     }
 
     @Transactional

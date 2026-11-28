@@ -1,10 +1,11 @@
 package com.example.busbooking.data.repository;
 
 import com.example.busbooking.data.entity.LocationEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.util.List;
 
 public interface SpringDataLocationRepository extends JpaRepository<LocationEntity, Long> {
     @Query(value = """
@@ -14,8 +15,14 @@ public interface SpringDataLocationRepository extends JpaRepository<LocationEnti
                OR position(lower(:query) in lower(province)) > 0
                OR position(lower(:query) in lower(address)) > 0
             ORDER BY lower(province), lower(name), id
+            """, countQuery = """
+            SELECT count(*) FROM locations
+            WHERE :query = ''
+               OR position(lower(:query) in lower(name)) > 0
+               OR position(lower(:query) in lower(province)) > 0
+               OR position(lower(:query) in lower(address)) > 0
             """, nativeQuery = true)
-    List<LocationEntity> search(@Param("query") String query);
+    Page<LocationEntity> search(@Param("query") String query, Pageable pageable);
 
     boolean existsByNameIgnoreCaseAndProvinceIgnoreCaseAndAddressIgnoreCase(
             String name, String province, String address);

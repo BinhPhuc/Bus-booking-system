@@ -1,21 +1,22 @@
 package com.example.busbooking.business.port.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.example.busbooking.domain.model.Trip;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 public interface TripRepository {
-    List<Trip> findForAdmin(Long routeId, com.example.busbooking.domain.enums.TripStatus status, LocalDate departureDate);
+    Page<Trip> findForAdmin(Long routeId, com.example.busbooking.domain.enums.TripStatus status, LocalDate departureDate, Pageable pageable);
 
     Trip save(Trip trip);
 
-    List<Trip> search(
+    Page<Trip> search(
             Long originId,
             Long destinationId,
-            LocalDate departureDate
-    );
+            LocalDate departureDate,
+            Pageable pageable);
 
     Optional<Trip> findById(Long tripId);
 

@@ -1,5 +1,6 @@
 package com.example.busbooking.api.controller;
 
+import com.example.busbooking.api.dto.PageResponse;
 import com.example.busbooking.api.dto.route.*;
 import com.example.busbooking.api.mapper.RouteDtoMapper;
 import com.example.busbooking.business.service.RouteService;
@@ -10,7 +11,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/routes")
@@ -26,10 +26,14 @@ public class AdminRouteController {
 
     @GetMapping
     @Operation(summary = "List routes with optional endpoint and status filters")
-    public List<RouteResponse> list(@RequestParam(required = false) Long originId,
-                                    @RequestParam(required = false) Long destinationId,
-                                    @RequestParam(required = false) RouteStatus status) {
-        return service.search(originId, destinationId, status).stream().map(mapper::toResponse).toList();
+    public PageResponse<RouteResponse> list(
+            @RequestParam(required = false) Long originId,
+            @RequestParam(required = false) Long destinationId,
+            @RequestParam(required = false) RouteStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit) {
+        return PageResponse.from(service.search(originId, destinationId, status, PageResponse.request(page, limit))
+                .map(mapper::toResponse));
     }
 
     @PostMapping

@@ -1,5 +1,6 @@
 package com.example.busbooking.api.controller;
 
+import com.example.busbooking.api.dto.PageResponse;
 import com.example.busbooking.api.dto.trip.*;
 import com.example.busbooking.api.mapper.TripDtoMapper;
 import com.example.busbooking.business.service.TripService;
@@ -13,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/trips")
@@ -29,11 +29,15 @@ public class AdminTripController {
 
     @GetMapping
     @Operation(summary = "List trips in all states with optional admin filters")
-    public List<TripResponse> list(@RequestParam(required = false) Long routeId,
-                                  @RequestParam(required = false) TripStatus status,
-                                  @RequestParam(required = false)
-                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departureDate) {
-        return service.listForAdmin(routeId, status, departureDate).stream().map(mapper::toResponse).toList();
+    public PageResponse<TripResponse> list(
+            @RequestParam(required = false) Long routeId,
+            @RequestParam(required = false) TripStatus status,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departureDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit) {
+        return PageResponse.from(service.listForAdmin(routeId, status, departureDate, PageResponse.request(page, limit))
+                .map(mapper::toResponse));
     }
 
     @PostMapping

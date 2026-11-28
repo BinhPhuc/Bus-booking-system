@@ -2,15 +2,16 @@ package com.example.busbooking.data.repository;
 
 import com.example.busbooking.data.entity.VehicleEntity;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.util.List;
 import java.util.Optional;
 
 public interface SpringDataVehicleRepository extends JpaRepository<VehicleEntity, Long> {
-    @Query("""
+    @Query(value = """
             select vehicle from VehicleEntity vehicle
             join fetch vehicle.operator operator
             where (:query = '' or lower(vehicle.licensePlate) like lower(concat('%', replace(:query, ' ', ''), '%'))
@@ -18,10 +19,17 @@ public interface SpringDataVehicleRepository extends JpaRepository<VehicleEntity
               and (:operatorId is null or vehicle.operatorId = :operatorId)
               and (:status is null or vehicle.status = :status)
             order by lower(operator.name), lower(vehicle.licensePlate), vehicle.id
+            """, countQuery = """
+            SELECT count(vehicle) from VehicleEntity vehicle
+            JOIN vehicle.operator operator
+            where (:query = '' or lower(vehicle.licensePlate) like lower(concat('%', replace(:query, ' ', ''), '%'))
+                    or lower(vehicle.vehicleType) like lower(concat('%', :query, '%')))
+              and (:operatorId is null or vehicle.operatorId = :operatorId)
+              and (:status is null or vehicle.status = :status)
             """)
-    List<VehicleEntity> search(@Param("query") String query,
+    Page<VehicleEntity> search(@Param("query") String query,
                                @Param("operatorId") Long operatorId,
-                               @Param("status") String status);
+                               @Param("status") String status, Pageable pageable);
 
     @Query("""
             select vehicle from VehicleEntity vehicle

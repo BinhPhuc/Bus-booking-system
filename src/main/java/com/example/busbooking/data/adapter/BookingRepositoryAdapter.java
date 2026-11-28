@@ -6,6 +6,8 @@ import com.example.busbooking.data.mapper.BookingPersistenceMapper;
 import com.example.busbooking.data.repository.SpringDataBookingRepository;
 import com.example.busbooking.domain.enums.BookingStatus;
 import com.example.busbooking.domain.model.Booking;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
@@ -26,9 +28,9 @@ public class BookingRepositoryAdapter implements BookingRepository {
     public long countConfirmedSeats(Long tripId) {
         return repository.countSeats(tripId, BookingStatus.CONFIRMED);
     }
-    public List<Booking> findForAdmin(Long userId, Long tripId, BookingStatus status) {
-        return repository.findForAdmin(userId, tripId, status, userId == null, tripId == null, status == null)
-                .stream().map(mapper::toDomain).toList();
+    public Page<Booking> findForAdmin(Long userId, Long tripId, BookingStatus status, Pageable pageable) {
+        return repository.findForAdmin(userId, tripId, status, userId == null, tripId == null, status == null, pageable)
+                .map(mapper::toDomain);
     }
     public Optional<Booking> findById(Long id) {
         return repository.findById(id).map(mapper::toDomain);

@@ -7,9 +7,10 @@ import com.example.busbooking.domain.enums.RouteStatus;
 import com.example.busbooking.domain.exception.*;
 import com.example.busbooking.domain.model.Location;
 import com.example.busbooking.domain.model.Route;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
 @Service
 public class RouteService {
@@ -22,10 +23,10 @@ public class RouteService {
     }
 
     @Transactional(readOnly = true)
-    public List<Route> search(Long originId, Long destinationId, RouteStatus status) {
+    public Page<Route> search(Long originId, Long destinationId, RouteStatus status, Pageable pageable) {
         requireOptionalPositive(originId, "originId");
         requireOptionalPositive(destinationId, "destinationId");
-        return routes.search(originId, destinationId, status);
+        return routes.search(originId, destinationId, status, pageable);
     }
 
     @Transactional

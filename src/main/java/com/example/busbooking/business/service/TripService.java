@@ -11,11 +11,12 @@ import com.example.busbooking.domain.exception.BusinessException;
 import com.example.busbooking.domain.exception.TripConflictException;
 import com.example.busbooking.domain.exception.ResourceNotFoundException;
 import com.example.busbooking.domain.model.Trip;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
 public class TripService {
@@ -34,8 +35,8 @@ public class TripService {
     }
 
     @Transactional(readOnly = true)
-    public List<Trip> listForAdmin(Long routeId, TripStatus status, LocalDate departureDate) {
-        return tripRepository.findForAdmin(routeId, status, departureDate);
+    public Page<Trip> listForAdmin(Long routeId, TripStatus status, LocalDate departureDate, Pageable pageable) {
+        return tripRepository.findForAdmin(routeId, status, departureDate, pageable);
     }
 
     @Transactional
@@ -111,15 +112,17 @@ public class TripService {
         return vehicle;
     }
 
-    public List<Trip> searchTrips(
+    public Page<Trip> searchTrips(
             Long originId,
             Long destinationId,
-            LocalDate departureDate) {
+            LocalDate departureDate,
+            Pageable pageable) {
 
         return tripRepository.search(
                 originId,
                 destinationId,
-                departureDate
+                departureDate,
+                pageable
         );
     }
 

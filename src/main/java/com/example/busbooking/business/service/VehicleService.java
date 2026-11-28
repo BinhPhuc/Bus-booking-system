@@ -9,9 +9,10 @@ import com.example.busbooking.domain.exception.*;
 import com.example.busbooking.domain.model.Operator;
 import com.example.busbooking.domain.model.OperatorSummary;
 import com.example.busbooking.domain.model.Vehicle;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -25,11 +26,11 @@ public class VehicleService {
     }
 
     @Transactional(readOnly = true)
-    public List<Vehicle> search(String query, Long operatorId, VehicleStatus status) {
+    public Page<Vehicle> search(String query, Long operatorId, VehicleStatus status, Pageable pageable) {
         if (operatorId != null && operatorId <= 0) {
             throw new BusinessException("operatorId must be a positive number");
         }
-        return vehicles.search(normalizeQuery(query), operatorId, status);
+        return vehicles.search(normalizeQuery(query), operatorId, status, pageable);
     }
 
     @Transactional

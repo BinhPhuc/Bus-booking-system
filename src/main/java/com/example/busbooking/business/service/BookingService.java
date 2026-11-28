@@ -9,6 +9,8 @@ import com.example.busbooking.domain.model.Booking;
 import com.example.busbooking.domain.model.Trip;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -75,8 +77,8 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<Booking> listForAdmin(Long userId, Long tripId, BookingStatus status) {
-        return bookingRepository.findForAdmin(userId, tripId, status);
+    public Page<Booking> listForAdmin(Long userId, Long tripId, BookingStatus status, Pageable pageable) {
+        return bookingRepository.findForAdmin(userId, tripId, status, pageable);
     }
 
     @Transactional

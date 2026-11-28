@@ -1,5 +1,6 @@
 package com.example.busbooking.api.controller;
 
+import com.example.busbooking.api.dto.PageResponse;
 import com.example.busbooking.api.dto.operator.*;
 import com.example.busbooking.api.mapper.OperatorDtoMapper;
 import com.example.busbooking.business.service.OperatorService;
@@ -10,7 +11,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/operators")
@@ -26,9 +26,13 @@ public class AdminOperatorController {
 
     @GetMapping
     @Operation(summary = "List bus operators with optional text and status filters")
-    public List<OperatorResponse> list(@RequestParam(required = false) String q,
-                                       @RequestParam(required = false) OperatorStatus status) {
-        return service.search(q, status).stream().map(mapper::toResponse).toList();
+    public PageResponse<OperatorResponse> list(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) OperatorStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit) {
+        return PageResponse.from(service.search(q, status, PageResponse.request(page, limit))
+                .map(mapper::toResponse));
     }
 
     @PostMapping

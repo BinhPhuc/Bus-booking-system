@@ -9,9 +9,10 @@ import com.example.busbooking.domain.exception.DuplicateVehicleException;
 import com.example.busbooking.domain.exception.ResourceNotFoundException;
 import com.example.busbooking.domain.model.Vehicle;
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
-import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -29,9 +30,8 @@ public class VehicleRepositoryAdapter implements VehicleRepository {
     }
 
     @Override
-    public List<Vehicle> search(String query, Long operatorId, VehicleStatus status) {
-        return repository.search(query, operatorId, status == null ? null : status.name()).stream()
-                .map(mapper::toDomain).toList();
+    public Page<Vehicle> search(String query, Long operatorId, VehicleStatus status, Pageable pageable) {
+        return repository.search(query, operatorId, status == null ? null : status.name(), pageable).map(mapper::toDomain);
     }
 
     @Override

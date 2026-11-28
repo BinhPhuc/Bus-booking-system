@@ -7,9 +7,10 @@ import com.example.busbooking.data.repository.SpringDataLocationRepository;
 import com.example.busbooking.domain.exception.DuplicateLocationException;
 import com.example.busbooking.domain.exception.ResourceNotFoundException;
 import com.example.busbooking.domain.model.Location;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
-import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -23,8 +24,8 @@ public class LocationRepositoryAdapter implements LocationRepository {
     }
 
     @Override
-    public List<Location> search(String query) {
-        return repository.search(query).stream().map(mapper::toDomain).toList();
+    public Page<Location> search(String query, Pageable pageable) {
+        return repository.search(query, pageable).map(mapper::toDomain);
     }
 
     @Override

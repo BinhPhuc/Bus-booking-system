@@ -9,9 +9,10 @@ import com.example.busbooking.domain.exception.DuplicateRouteException;
 import com.example.busbooking.domain.exception.ResourceNotFoundException;
 import com.example.busbooking.domain.model.Route;
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
-import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -28,9 +29,8 @@ public class RouteRepositoryAdapter implements RouteRepository {
     }
 
     @Override
-    public List<Route> search(Long originId, Long destinationId, RouteStatus status) {
-        return repository.search(originId, destinationId, status == null ? null : status.name()).stream()
-                .map(mapper::toDomain).toList();
+    public Page<Route> search(Long originId, Long destinationId, RouteStatus status, Pageable pageable) {
+        return repository.search(originId, destinationId, status == null ? null : status.name(), pageable).map(mapper::toDomain);
     }
 
     @Override

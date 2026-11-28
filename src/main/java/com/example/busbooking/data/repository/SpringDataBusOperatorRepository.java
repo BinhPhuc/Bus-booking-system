@@ -2,9 +2,10 @@ package com.example.busbooking.data.repository;
 
 import com.example.busbooking.data.entity.OperatorEntity;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-import java.util.List;
 import java.util.Optional;
 
 public interface SpringDataBusOperatorRepository extends JpaRepository<OperatorEntity, Long> {
@@ -17,8 +18,16 @@ public interface SpringDataBusOperatorRepository extends JpaRepository<OperatorE
                 OR position(lower(:query) in lower(email)) > 0)
               AND (:status = '' OR status = :status)
             ORDER BY lower(name), id
+            """, countQuery = """
+            SELECT count(*) FROM bus_operators
+            WHERE (:query = ''
+                OR position(lower(:query) in lower(name)) > 0
+                OR position(lower(:query) in lower(address)) > 0
+                OR position(lower(:query) in lower(phone)) > 0
+                OR position(lower(:query) in lower(email)) > 0)
+              AND (:status = '' OR status = :status)
             """, nativeQuery = true)
-    List<OperatorEntity> search(@Param("query") String query, @Param("status") String status);
+    Page<OperatorEntity> search(@Param("query") String query, @Param("status") String status, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select operator from OperatorEntity operator where operator.id = :id")

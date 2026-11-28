@@ -5,9 +5,10 @@ import com.example.busbooking.business.port.repository.OperatorRepository;
 import com.example.busbooking.domain.enums.OperatorStatus;
 import com.example.busbooking.domain.exception.*;
 import com.example.busbooking.domain.model.Operator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
 @Service
 public class OperatorService {
@@ -18,8 +19,8 @@ public class OperatorService {
     }
 
     @Transactional(readOnly = true)
-    public List<Operator> search(String query, OperatorStatus status) {
-        return operators.search(OperatorInputPolicy.query(query), status);
+    public Page<Operator> search(String query, OperatorStatus status, Pageable pageable) {
+        return operators.search(OperatorInputPolicy.query(query), status, pageable);
     }
 
     @Transactional

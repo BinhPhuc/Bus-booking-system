@@ -1,5 +1,6 @@
 package com.example.busbooking.api.controller;
 
+import com.example.busbooking.api.dto.PageResponse;
 import com.example.busbooking.api.dto.location.LocationRequest;
 import com.example.busbooking.api.dto.location.LocationResponse;
 import com.example.busbooking.api.mapper.LocationDtoMapper;
@@ -10,7 +11,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/locations")
@@ -26,8 +26,12 @@ public class AdminLocationController {
 
     @GetMapping
     @Operation(summary = "List locations with optional text search")
-    public List<LocationResponse> list(@RequestParam(required = false) String q) {
-        return service.search(q).stream().map(mapper::toResponse).toList();
+    public PageResponse<LocationResponse> list(
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit) {
+        return PageResponse.from(service.search(q, PageResponse.request(page, limit))
+                .map(mapper::toResponse));
     }
 
     @PostMapping

@@ -1,5 +1,6 @@
 package com.example.busbooking.api.controller;
 
+import com.example.busbooking.api.dto.PageResponse;
 import com.example.busbooking.api.dto.trip.TripResponse;
 import com.example.busbooking.api.mapper.TripDtoMapper;
 import com.example.busbooking.business.service.TripService;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -26,20 +26,18 @@ public class TripController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TripResponse>> searchTrips(
+    public PageResponse<TripResponse> searchTrips(
             @RequestParam(required = false) Long originId,
             @RequestParam(required = false) Long destinationId,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate departureDate) {
+            LocalDate departureDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit) {
 
-        List<TripResponse> responses = tripService
-                .searchTrips(originId, destinationId, departureDate)
-                .stream()
-                .map(tripDtoMapper::toResponse)
-                .toList();
-
-        return ResponseEntity.ok(responses);
+        return PageResponse.from(tripService
+                .searchTrips(originId, destinationId, departureDate, PageResponse.request(page, limit))
+                .map(tripDtoMapper::toResponse));
     }
 
     @GetMapping("/{tripId}")
