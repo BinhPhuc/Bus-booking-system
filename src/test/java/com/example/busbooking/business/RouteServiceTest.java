@@ -14,11 +14,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RouteServiceTest {
+
+    private static final PageRequest PAGE = PageRequest.of(1, 10);
     @Mock RouteRepository routes;
     @Mock LocationRepository locations;
     RouteService service;
@@ -119,8 +122,8 @@ class RouteServiceTest {
     }
 
     @Test void searchValidatesIdsAndDelegatesFilters() {
-        service.search(1L, 2L, RouteStatus.ACTIVE);
-        verify(routes).search(1L, 2L, RouteStatus.ACTIVE);
-        assertThatThrownBy(() -> service.search(0L, null, null)).isInstanceOf(BusinessException.class);
+        service.search(1L, 2L, RouteStatus.ACTIVE, PAGE);
+        verify(routes).search(1L, 2L, RouteStatus.ACTIVE, PAGE);
+        assertThatThrownBy(() -> service.search(0L, null, null, PAGE)).isInstanceOf(BusinessException.class);
     }
 }

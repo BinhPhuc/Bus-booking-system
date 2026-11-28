@@ -59,10 +59,10 @@ class RouteManagementIntegrationTest {
         mvc.perform(get("/api/admin/routes").header("Authorization", token(admin))
                         .param("originId", origin.toString()).param("destinationId", destination.toString())
                         .param("status", "ACTIVE"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].origin.id").value(origin));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].origin.id").value(origin));
         mvc.perform(get("/api/admin/routes").header("Authorization", token(admin))
                         .param("status", "INACTIVE"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty());
     }
 
     @Test void orderedPairIsUniqueButReverseDirectionIsAllowed() throws Exception {

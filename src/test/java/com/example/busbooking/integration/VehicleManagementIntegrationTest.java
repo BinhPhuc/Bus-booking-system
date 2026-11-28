@@ -59,12 +59,12 @@ class VehicleManagementIntegrationTest {
 
         mvc.perform(get("/api/admin/vehicles").header("Authorization", token(admin))
                         .param("q", "giường").param("operatorId", operator.toString()).param("status", "ACTIVE"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].licensePlate").value("51A" + suffix.toUpperCase()));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].licensePlate").value("51A" + suffix.toUpperCase()));
         mvc.perform(get("/api/admin/vehicles").header("Authorization", token(admin))
                         .param("q", "51a " + suffix))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].licensePlate").value("51A" + suffix.toUpperCase()));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].licensePlate").value("51A" + suffix.toUpperCase()));
         mvc.perform(get("/api/admin/vehicles").header("Authorization", token(admin)).param("status", "INACTIVE"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty());
     }
 
     @Test void normalizedLicensePlateIsUniqueAndConcurrentSafe() throws Exception {

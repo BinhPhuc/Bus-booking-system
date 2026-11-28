@@ -98,9 +98,9 @@ class AdminManagementIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT available_seats FROM trips WHERE id = ?", Integer.class, id)).isEqualTo(10);
         assertThat(jdbc.queryForObject("SELECT status FROM trips WHERE id = ?", String.class, id)).isEqualTo("SCHEDULED");
         mvc.perform(get("/api/admin/trips").header("Authorization", token(superAdmin)).param("routeId", route.toString()))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(id))
-                .andExpect(jsonPath("$[0].route.origin").value("Origin " + suffix))
-                .andExpect(jsonPath("$[0].vehicle.seatCapacity").value(10));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].id").value(id))
+                .andExpect(jsonPath("$.content[0].route.origin").value("Origin " + suffix))
+                .andExpect(jsonPath("$.content[0].vehicle.seatCapacity").value(10));
     }
 
     @Test void listIncludesAllStatesAndCombinesOptionalFilters() throws Exception {
@@ -108,12 +108,12 @@ class AdminManagementIntegrationTest {
         jdbc.update("UPDATE trips SET status = 'COMPLETED' WHERE id = ?", id);
         createTrip();
         mvc.perform(get("/api/admin/trips").header("Authorization", token(admin)).param("routeId", route.toString()))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(2));
         mvc.perform(get("/api/admin/trips").header("Authorization", token(admin)).param("routeId", route.toString())
                 .param("status", "COMPLETED").param("departureDate", "2026-11-10"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1)).andExpect(jsonPath("$[0].id").value(id));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(1)).andExpect(jsonPath("$.content[0].id").value(id));
         mvc.perform(get("/api/admin/trips").header("Authorization", token(admin)).param("routeId", route.toString())
-                .param("departureDate", "2026-11-11")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+                .param("departureDate", "2026-11-11")).andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(0));
         mvc.perform(get("/api/admin/trips").header("Authorization", token(admin)))
                 .andExpect(status().isOk());
     }
@@ -366,19 +366,19 @@ class AdminManagementIntegrationTest {
         bookings.cancel(otherUser, false, second.getId());
         for (Long actor : List.of(admin, superAdmin)) {
             mvc.perform(get("/api/admin/bookings").header("Authorization", token(actor)).param("tripId", id.toString()))
-                    .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2))
-                    .andExpect(jsonPath("$[0].password").doesNotExist())
-                    .andExpect(jsonPath("$[0].email").doesNotExist())
-                    .andExpect(jsonPath("$[0].user").doesNotExist());
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(2))
+                    .andExpect(jsonPath("$.content[0].password").doesNotExist())
+                    .andExpect(jsonPath("$.content[0].email").doesNotExist())
+                    .andExpect(jsonPath("$.content[0].user").doesNotExist());
         }
         mvc.perform(get("/api/admin/bookings").header("Authorization", token(admin)).param("userId", user.toString())
                 .param("tripId", id.toString()).param("status", "CONFIRMED"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(first.getId()));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(first.getId()));
         mvc.perform(get("/api/admin/bookings").header("Authorization", token(admin)).param("status", "CANCELLED")
-                .param("userId", otherUser.toString())).andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(second.getId()));
+                .param("userId", otherUser.toString())).andExpect(status().isOk()).andExpect(jsonPath("$.content[0].id").value(second.getId()));
         mvc.perform(get("/api/admin/bookings").header("Authorization", token(admin)).param("userId", user.toString())
-                .param("status", "CANCELLED")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+                .param("status", "CANCELLED")).andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(0));
         mvc.perform(get("/api/admin/bookings").header("Authorization", token(superAdmin))).andExpect(status().isOk());
     }
 

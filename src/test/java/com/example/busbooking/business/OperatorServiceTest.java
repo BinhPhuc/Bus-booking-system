@@ -12,11 +12,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OperatorServiceTest {
+
+    private static final PageRequest PAGE = PageRequest.of(1, 10);
     @Mock OperatorRepository operators;
 
     @Test void createNormalizesFieldsAndAlwaysUsesActiveStatus() {
@@ -85,16 +88,16 @@ class OperatorServiceTest {
                 "+14155552671", "contact@example.com", null))).isInstanceOf(InvalidOperatorInputException.class);
         assertThatThrownBy(() -> service.create(new SaveOperatorCommand("Operator", "Address",
                 "0901234567", "invalid", null))).isInstanceOf(InvalidOperatorInputException.class);
-        assertThatThrownBy(() -> service.search("x".repeat(101), null))
+        assertThatThrownBy(() -> service.search("x".repeat(101), null, PAGE))
                 .isInstanceOf(InvalidOperatorInputException.class);
     }
 
     @Test void searchNormalizesBlankAndWhitespace() {
         OperatorService service = new OperatorService(operators);
-        service.search("   ", OperatorStatus.ACTIVE);
-        service.search("  nhà   xe ", null);
-        verify(operators).search("", OperatorStatus.ACTIVE);
-        verify(operators).search("nhà xe", null);
+        service.search("   ", OperatorStatus.ACTIVE, PAGE);
+        service.search("  nhà   xe ", null, PAGE);
+        verify(operators).search("", OperatorStatus.ACTIVE, PAGE);
+        verify(operators).search("nhà xe", null, PAGE);
     }
 
     private SaveOperatorCommand command(String name, OperatorStatus status) {

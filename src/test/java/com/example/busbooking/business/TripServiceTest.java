@@ -14,12 +14,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TripServiceTest {
+
+    private static final PageRequest PAGE = PageRequest.of(1, 10);
 
     @Mock
     private TripRepository tripRepository;
@@ -35,15 +40,17 @@ class TripServiceTest {
         Trip trip = mock(Trip.class);
         List<Trip> expectedTrips = List.of(trip);
 
-        when(tripRepository.search(originId, destinationId, departureDate))
-                .thenReturn(expectedTrips);
+        when(tripRepository.search(originId, destinationId, departureDate, PAGE))
+                .thenReturn(new PageImpl<>(expectedTrips, PAGE, 11));
 
-        List<Trip> actualTrips = tripService.searchTrips(
-                originId, destinationId, departureDate
+        Page<Trip> actualTrips = tripService.searchTrips(
+                originId, destinationId, departureDate, PAGE
         );
 
-        assertEquals(expectedTrips, actualTrips);
-        verify(tripRepository).search(originId, destinationId, departureDate);
+        assertEquals(expectedTrips, actualTrips.getContent());
+        assertEquals(11, actualTrips.getTotalElements());
+        assertEquals(1, actualTrips.getNumber());
+        verify(tripRepository).search(originId, destinationId, departureDate, PAGE);
     }
 
     @Test
@@ -52,24 +59,24 @@ class TripServiceTest {
         Long destinationId = 2L;
         LocalDate departureDate = LocalDate.of(2026, 10, 25);
 
-        when(tripRepository.search(originId, destinationId, departureDate))
-                .thenReturn(List.of());
+        when(tripRepository.search(originId, destinationId, departureDate, PAGE))
+                .thenReturn(Page.empty(PAGE));
 
-        List<Trip> result = tripService.searchTrips(
-                originId, destinationId, departureDate
+        Page<Trip> result = tripService.searchTrips(
+                originId, destinationId, departureDate, PAGE
         );
 
         assertTrue(result.isEmpty());
-        verify(tripRepository).search(originId, destinationId, departureDate);
+        verify(tripRepository).search(originId, destinationId, departureDate, PAGE);
     }
 
     @Test
     void searchTrips_whenAllFiltersAreNull_shouldDelegateNullsWithoutChangingThem() {
-        when(tripRepository.search(null, null, null)).thenReturn(List.of());
+        when(tripRepository.search(null, null, null, PAGE)).thenReturn(Page.empty(PAGE));
 
-        assertTrue(tripService.searchTrips(null, null, null).isEmpty());
+        assertTrue(tripService.searchTrips(null, null, null, PAGE).isEmpty());
 
-        verify(tripRepository).search(null, null, null);
+        verify(tripRepository).search(null, null, null, PAGE);
         verifyNoMoreInteractions(tripRepository);
     }
 

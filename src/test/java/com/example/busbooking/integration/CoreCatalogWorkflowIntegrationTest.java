@@ -85,17 +85,21 @@ class CoreCatalogWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
                 .andReturn().getResponse().getContentAsString());
 
-        mvc.perform(get("/api/admin/locations").header("Authorization", token(adminId)).param("q", suffix))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2));
+        mvc.perform(get("/api/admin/locations").header("Authorization", token(adminId)).param("q", suffix)
+                        .param("limit", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(2));
         mvc.perform(get("/api/admin/operators").header("Authorization", token(adminId))
                         .param("q", suffix).param("status", "ACTIVE"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(operatorId));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].id").value(operatorId));
         mvc.perform(get("/api/admin/vehicles").header("Authorization", token(adminId))
                         .param("operatorId", operatorId.toString()).param("status", "ACTIVE"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(vehicleId));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].id").value(vehicleId));
         mvc.perform(get("/api/admin/routes").header("Authorization", token(adminId))
                         .param("originId", originId.toString()).param("destinationId", destinationId.toString()))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(routeId));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].id").value(routeId));
 
         assertDuplicateRequestsReturn409();
         tripId = jdbc.queryForObject("""

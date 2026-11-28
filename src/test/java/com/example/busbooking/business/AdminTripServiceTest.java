@@ -13,11 +13,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AdminTripServiceTest {
+
+    private static final PageRequest PAGE = PageRequest.of(1, 10);
     @Mock TripRepository trips;
     @Mock RouteRepository routes;
     @Mock VehicleRepository vehicles;
@@ -96,8 +99,8 @@ class AdminTripServiceTest {
     }
 
     @Test void listDelegatesAdminFilters() {
-        service.listForAdmin(1L, TripStatus.CANCELLED, departure.toLocalDate());
-        verify(trips).findForAdmin(1L, TripStatus.CANCELLED, departure.toLocalDate());
+        service.listForAdmin(1L, TripStatus.CANCELLED, departure.toLocalDate(), PAGE);
+        verify(trips).findForAdmin(1L, TripStatus.CANCELLED, departure.toLocalDate(), PAGE);
     }
 
     Trip existing(Long vehicleId, TripStatus status) {

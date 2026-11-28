@@ -53,8 +53,8 @@ class OperatorManagementIntegrationTest {
 
         mvc.perform(get("/api/admin/operators").header("Authorization", token(admin))
                         .param("q", "  NHÀ   XE " + suffix).param("status", "ACTIVE"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].name").value("Nhà xe " + suffix));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Nhà xe " + suffix));
         mvc.perform(get("/api/admin/operators").header("Authorization", token(admin))
                         .param("status", "INACTIVE"))
                 .andExpect(status().isOk());

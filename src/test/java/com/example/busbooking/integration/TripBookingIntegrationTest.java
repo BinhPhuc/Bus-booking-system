@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -49,6 +50,7 @@ class TripBookingIntegrationTest {
     private Long routeId;
     private Long vehicleId;
     private Long tripId;
+    private LocalDate departureDate;
 
     @BeforeEach
     void seed() {
@@ -72,7 +74,8 @@ class TripBookingIntegrationTest {
                 INSERT INTO vehicles (operator_id, license_plate, vehicle_type, seat_capacity, status)
                 VALUES (?, ?, 'SLEEPER', 10, 'ACTIVE') RETURNING id
                 """, Long.class, operatorId, ("T-" + suffix.substring(0, Math.min(17, suffix.length()))).toUpperCase());
-        tripId = insertTrip(LocalDateTime.of(2026, 10, 25, 8, 0), 4, "SCHEDULED");
+        departureDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).plusDays(2);
+        tripId = insertTrip(departureDate.atTime(8, 0), 4, "SCHEDULED");
     }
 
     @AfterEach
@@ -89,31 +92,55 @@ class TripBookingIntegrationTest {
     @Test
     @Order(1)
     void tripSearchSupportsFiltersWholeDateAndDetailedResponse() throws Exception {
-        insertTrip(LocalDateTime.of(2026, 10, 25, 23, 59), 3, "SCHEDULED");
-        insertTrip(LocalDateTime.of(2026, 10, 26, 0, 0), 2, "SCHEDULED");
+        insertTrip(departureDate.atTime(23, 59), 3, "SCHEDULED");
+        insertTrip(departureDate.plusDays(1).atStartOfDay(), 2, "SCHEDULED");
+        insertTrip(departureDate.atTime(12, 0), 2, "CANCELLED");
+        insertTrip(departureDate.minusDays(3).atTime(8, 0), 2, "SCHEDULED");
+
+        mvc.perform(get("/api/trips").param("originId", originId.toString()).param("limit", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.content[0].id").value(tripId));
 
         MvcResult result = mvc.perform(get("/api/trips")
                         .param("originId", originId.toString())
                         .param("destinationId", destinationId.toString())
-                        .param("departureDate", "2026-10-25"))
+                        .param("departureDate", departureDate.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].departureTime").value("2026-10-25T08:00:00"))
-                .andExpect(jsonPath("$[1].departureTime").value("2026-10-25T23:59:00"))
-                .andExpect(jsonPath("$[0].route.origin").value(org.hamcrest.Matchers.startsWith("Origin " + fixture)))
-                .andExpect(jsonPath("$[0].route.destination").value(org.hamcrest.Matchers.startsWith("Destination " + fixture)))
-                .andExpect(jsonPath("$[0].vehicle.vehicleType").value("SLEEPER"))
-                .andExpect(jsonPath("$[0].vehicle.operatorName").value(org.hamcrest.Matchers.startsWith("Operator " + fixture)))
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].departureTime").value(departureDate + "T08:00:00"))
+                .andExpect(jsonPath("$.content[1].departureTime").value(departureDate + "T23:59:00"))
+                .andExpect(jsonPath("$.content[0].route.origin").value(org.hamcrest.Matchers.startsWith("Origin " + fixture)))
+                .andExpect(jsonPath("$.content[0].route.destination").value(org.hamcrest.Matchers.startsWith("Destination " + fixture)))
+                .andExpect(jsonPath("$.content[0].vehicle.vehicleType").value("SLEEPER"))
+                .andExpect(jsonPath("$.content[0].vehicle.operatorName").value(org.hamcrest.Matchers.startsWith("Operator " + fixture)))
                 .andReturn();
 
-        TripResponse[] trips = json.readValue(result.getResponse().getContentAsString(), TripResponse[].class);
+        TripResponse[] trips = json.treeToValue(json.readTree(result.getResponse().getContentAsString()).get("content"), TripResponse[].class);
         assertThat(trips[0].routeId()).isEqualTo(routeId);
         assertThat(trips[0].vehicleId()).isEqualTo(vehicleId);
+
+        mvc.perform(get("/api/trips")
+                        .param("originId", originId.toString())
+                        .param("destinationId", destinationId.toString())
+                        .param("departureDate", departureDate.toString())
+                        .param("page", "1").param("limit", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.limit").value(1))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].departureTime").value(departureDate + "T23:59:00"));
     }
 
     @Test
     @Order(2)
     void tripSearchAndGetHandleEmptyInvalidAndMissingRequests() throws Exception {
+        mvc.perform(get("/api/trips").param("page", "-1"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(get("/api/trips").param("limit", "101"))
+                .andExpect(status().isBadRequest());
         mvc.perform(get("/api/trips").param("originId", "not-a-number"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("INVALID_REQUEST"));
@@ -121,7 +148,7 @@ class TripBookingIntegrationTest {
                 .andExpect(status().isBadRequest());
         mvc.perform(get("/api/trips").param("originId", "999999999"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.content.length()").value(0));
         mvc.perform(get("/api/trips/" + (tripId + 999999)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("NOT_FOUND"));

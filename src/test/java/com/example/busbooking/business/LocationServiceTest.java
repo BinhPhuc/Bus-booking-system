@@ -12,11 +12,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LocationServiceTest {
+
+    private static final PageRequest PAGE = PageRequest.of(1, 10);
     @Mock LocationRepository locations;
 
     @Test void createNormalizesWhitespaceBeforeCheckingAndSaving() {
@@ -64,10 +67,10 @@ class LocationServiceTest {
 
     @Test void searchTreatsBlankAsAllAndRejectsOverOneHundredCharacters() {
         LocationService service = new LocationService(locations);
-        service.search("   ");
-        verify(locations).search("");
+        service.search("   ", PAGE);
+        verify(locations).search("", PAGE);
 
-        assertThatThrownBy(() -> service.search("x".repeat(101)))
+        assertThatThrownBy(() -> service.search("x".repeat(101), PAGE))
                 .isInstanceOf(BusinessException.class);
     }
 

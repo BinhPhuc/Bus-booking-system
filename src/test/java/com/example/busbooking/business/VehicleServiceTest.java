@@ -14,11 +14,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class VehicleServiceTest {
+
+    private static final PageRequest PAGE = PageRequest.of(1, 10);
     @Mock VehicleRepository vehicles;
     @Mock OperatorRepository operators;
     VehicleService service;
@@ -122,9 +125,9 @@ class VehicleServiceTest {
     }
 
     @Test void searchNormalizesQueryAndValidatesOperatorId() {
-        service.search("  giường   nằm ", 1L, VehicleStatus.ACTIVE);
-        verify(vehicles).search("giường nằm", 1L, VehicleStatus.ACTIVE);
-        assertThatThrownBy(() -> service.search(null, 0L, null)).isInstanceOf(BusinessException.class);
-        assertThatThrownBy(() -> service.search("x".repeat(101), null, null)).isInstanceOf(BusinessException.class);
+        service.search("  giường   nằm ", 1L, VehicleStatus.ACTIVE, PAGE);
+        verify(vehicles).search("giường nằm", 1L, VehicleStatus.ACTIVE, PAGE);
+        assertThatThrownBy(() -> service.search(null, 0L, null, PAGE)).isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> service.search("x".repeat(101), null, null, PAGE)).isInstanceOf(BusinessException.class);
     }
 }
