@@ -10,14 +10,16 @@ import json
 import os
 import random
 
-from locust import HttpUser, task, between
+from locust import HttpUser, between, task
+
+from trip_page import get_trip_page
 
 with open(os.environ["BUSBOOKING_MANIFEST"], encoding="utf-8") as handle:
     MANIFEST = json.load(handle)
 
 ROUTES = MANIFEST["search_routes"]
 TRIP_ID = MANIFEST["sample_trip_id"]
-TODAY = datetime.date.today()
+VIETNAM_TIME = datetime.timezone(datetime.timedelta(hours=7))
 
 
 class TripSearchUser(HttpUser):
@@ -26,15 +28,14 @@ class TripSearchUser(HttpUser):
     @task(3)
     def search(self):
         route = random.choice(ROUTES)
-        date = TODAY + datetime.timedelta(days=random.randint(1, 30))
-        self.client.get(
-            "/api/trips",
-            params={
-                "originId": route["originId"],
-                "destinationId": route["destinationId"],
-                "departureDate": date.isoformat(),
-            },
+        today = datetime.datetime.now(VIETNAM_TIME).date()
+        date = today + datetime.timedelta(days=random.randint(1, 30))
+        get_trip_page(
+            self.client,
             name="GET /api/trips?origin&destination&date",
+            originId=route["originId"],
+            destinationId=route["destinationId"],
+            departureDate=date.isoformat(),
         )
 
     @task(1)
